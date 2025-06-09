@@ -595,6 +595,52 @@ for r in range(2,rows+1):
 
 
 
+📌 Code Recap:
+
+driver.implicitly_wait(10)  # Implicit wait of 10 seconds
+wait = WebDriverWait(driver, 20)  # Explicit wait of 20 seconds
+
+element = wait.until(EC.visibility_of_element_located((By.ID, "myElement")))
+
+
+
+
+✅ What happens behind the scenes?
+WebDriverWait(driver, 20) creates an explicit wait that will keep trying for up to 20 seconds, checking every 500 milliseconds by default.
+
+Each check inside wait.until(...) tries to locate the element using find_element.
+
+Because you've set driver.implicitly_wait(10), each find_element call inside the explicit wait will wait up to 10 seconds if it doesn’t find the element right away.
+
+🤯 So how much time will it wait?
+This is where it gets tricky:
+
+In theory, the explicit wait should wait at most 20 seconds total.
+
+But because of the 10-second implicit wait, each poll may take up to 10 seconds.
+
+So if the element is not found, the total wait time can exceed 20 seconds — sometimes even 20s × number of retries, making the test slower or flaky.
+
+⚠️ Example Worst-Case Timing:
+If Selenium polls every 500ms (0.5s), then:
+
+On each poll, it calls find_element, which may wait up to 10 seconds due to implicit wait.
+
+That means instead of 20s total wait time, it could end up waiting well beyond 20 seconds (e.g., 30s or more), depending on timing.
+
+✅ Recommendation:
+To avoid this confusion and unpredictable behavior:
+
+🔥 Set implicit wait to 0 when using explicit waits:
+
+python
+Copy
+Edit
+driver.implicitly_wait(0)
+wait = WebDriverWait(driver, 20)
+element = wait.until(EC.visibility_of_element_located((By.ID, "myElement")))
+Now you're guaranteed that the explicit wait handles the full timing, with no surprise delays.
+
 
 
 
